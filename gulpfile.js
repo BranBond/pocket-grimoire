@@ -17,9 +17,13 @@ const twig          = require("gulp-twig");
 const htmlmin       = require("gulp-htmlmin");
 const rename        = require("gulp-rename");
 const crypto        = require("crypto");
+const localiseData  = require("./tools/localiseData.js");
 
-const packageJson = JSON.parse(fs.readFileSync("./package.json"));
 const randomHash = crypto.randomBytes(8).toString("hex").slice(0, 8);
+const packageJson = {
+    pocketGrimoireHash: randomHash,
+    ...JSON.parse(fs.readFileSync("./package.json"))
+};
 
 const ENTRY_POINTS = {
     js: [
@@ -28,7 +32,7 @@ const ENTRY_POINTS = {
         "./assets/js/dialog.js",
     ],
     data: [
-        "./assets/data/**/*.json"
+        ["./assets/data/**/*.json", "!./assets/data/**/base.json"],
     ],
     scss: [
         "./assets/scss/main.scss",
@@ -146,6 +150,7 @@ gulp.task("data", () => Promise.all(
         const isProduction = (process.env.NODE_ENV === "production");
 
         gulp.src(entryPoints)
+            .pipe(localiseData())
             .pipe(
                 isProduction
                 ? jsonminify()
